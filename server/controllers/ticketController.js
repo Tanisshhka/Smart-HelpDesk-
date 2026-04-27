@@ -24,7 +24,7 @@ const createTicket = async (req, res) => {
     // 2. Auto-assignment based on specialization
     let assignedTo = null;
     let technicians = [];
-    
+
     if (category === 'Other') {
       // Assign to the absolute least busy technician across ALL specializations
       technicians = await User.find({ role: 'technician' });
@@ -75,7 +75,7 @@ const createTicket = async (req, res) => {
 // @access  Private
 const getTickets = async (req, res) => {
   let query = {};
-  
+
   if (req.user.role === 'user') {
     query.createdBy = req.user._id;
   } else if (req.user.role === 'technician') {
@@ -101,7 +101,7 @@ const getTicketById = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized to view this ticket' });
     }
     if (req.user.role === 'technician' && ticket.assignedTo && ticket.assignedTo._id.toString() !== req.user._id.toString()) {
-       return res.status(401).json({ message: 'Not authorized to view this ticket' });
+      return res.status(401).json({ message: 'Not authorized to view this ticket' });
     }
 
     res.json(ticket);

@@ -78,4 +78,12 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-export { authUser, registerUser, getUserProfile };
+// @desc    Get all users
+// @route   GET /api/auth/users
+// @access  Private (Admin)
+const getAllUsers = async (req, res) => {
+  const users = await User.find({}).select('-password');
+  res.json(users);
+};
+
+export { authUser, registerUser, getUserProfile, getAllUsers };
