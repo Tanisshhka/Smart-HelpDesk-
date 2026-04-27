@@ -46,34 +46,31 @@ const categorizeTicket = async (title, description) => {
   if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here') {
     try {
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      
-      // Try 2026-era models as 1.5 is deprecated
       const modelNames = ["gemini-3.1-pro-preview", "gemini-3.1-flash-preview", "gemini-3-pro-preview", "gemini-3-flash-preview", "gemini-1.5-flash", "gemini-pro"];
-      let model;
-      let errorOccurred;
+      
+      const prompt = `You are an IT Helpdesk assistant. Categorize the following ticket into EXACTLY one of these categories: ${validCategories.join(', ')}. 
+      Reply with ONLY the category name and nothing else. No punctuation, no explanation.
+      
+      Ticket:
+      Title: ${title}
+      Description: ${description}`;
 
       for (const name of modelNames) {
         try {
-          model = genAI.getGenerativeModel({ model: name });
-          const prompt = `You are an IT Helpdesk assistant. Categorize the following ticket into EXACTLY one of these categories: ${validCategories.join(', ')}. Reply ONLY with the category name.
-          
-          Ticket:
-          Title: ${title}
-          Description: ${description}`;
-
+          const model = genAI.getGenerativeModel({ model: name });
           const result = await model.generateContent(prompt);
-          const category = result.response.text().trim();
+          let category = result.response.text().trim();
           
-          if (validCategories.includes(category)) {
-            return category;
+          // Fuzzy match: Check if any valid category is contained in the AI response
+          for (const valid of validCategories) {
+            if (category.toLowerCase().includes(valid.toLowerCase())) {
+              return valid;
+            }
           }
         } catch (err) {
-          console.warn(`Gemini model ${name} failed, trying next...`);
-          errorOccurred = err;
           continue;
         }
       }
-      if (errorOccurred) throw errorOccurred;
     } catch (error) {
       console.error('Gemini API Error (Categorization):', error);
     }
