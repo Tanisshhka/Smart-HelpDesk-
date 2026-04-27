@@ -11,10 +11,7 @@
     "mongoose": "^9.5.0",
     "nodemailer": "^8.0.7"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "scripts": {
-    "build": "cd client && npm install && npm run build"
+    "build": "cd client && npm install && npm run build && cp -r dist ../dist"
   }
 }
