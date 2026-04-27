@@ -75,15 +75,25 @@ const createTicket = async (req, res) => {
 // @access  Private
 const getTickets = async (req, res) => {
   let query = {};
+  
+  console.log(`Ticket fetch request from: ${req.user.name} (Role: ${req.user.role})`);
 
   if (req.user.role === 'user') {
     query.createdBy = req.user._id;
   } else if (req.user.role === 'technician') {
     query.assignedTo = req.user._id;
+  } else if (req.user.role === 'admin') {
+    // Admin query is explicitly empty to get EVERYTHING
+    query = {};
+    console.log("Admin override: Fetching ALL tickets from database...");
   }
-  // Admin gets all tickets (empty query)
 
-  const tickets = await Ticket.find(query).populate('createdBy', 'name email').populate('assignedTo', 'name email').sort({ createdAt: -1 });
+  const tickets = await Ticket.find(query)
+    .populate('createdBy', 'name email')
+    .populate('assignedTo', 'name email')
+    .sort({ createdAt: -1 });
+
+  console.log(`Found ${tickets.length} tickets for ${req.user.role}`);
   res.json(tickets);
 };
 

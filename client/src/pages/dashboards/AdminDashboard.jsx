@@ -33,7 +33,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 60000); // 1 minute polling for admin
+    const interval = setInterval(fetchData, 10000); // Fast 10-second polling for admin
     return () => clearInterval(interval);
   }, []);
 
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   const totalTickets = tickets.length;
   const pendingTickets = tickets.filter(t => t.status === 'Pending').length;
   const ongoingTickets = tickets.filter(t => t.status === 'Ongoing').length;
-  const resolvedTickets = tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+  const resolvedTickets = tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed' || t.status === 'resolved').length;
   const totalTechnicians = users.filter(u => u.role === 'technician').length;
 
   const filteredTickets = tickets.filter(t => {
@@ -61,7 +61,11 @@ const AdminDashboard = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">System Overview</h2>
-          <p className="text-gray-500 text-sm">Managing {users.length} users and {totalTickets} support requests</p>
+          <div className="flex items-center mt-1">
+            <p className="text-gray-500 text-sm">Managing {users.length} users and {totalTickets} support requests</p>
+            <span className="mx-2 text-gray-300">•</span>
+            <p className="text-[10px] font-mono text-gray-400">Last Sync: {new Date().toLocaleTimeString()}</p>
+          </div>
         </div>
         <div className="flex space-x-2">
            <button 
