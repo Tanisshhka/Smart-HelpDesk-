@@ -56,6 +56,8 @@ const UserDashboard = () => {
 
   useEffect(() => {
     fetchTickets();
+    const interval = setInterval(fetchTickets, 30000); // 30s polling
+    return () => clearInterval(interval);
   }, []);
 
   const handleCreateTicket = async (e) => {

@@ -25,7 +25,14 @@ const TechDashboard = () => {
 
   useEffect(() => {
     fetchTickets();
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchTickets, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const handleManualRefresh = () => {
+    fetchTickets();
+  };
 
   const handleUpdateStatus = async (ticketId, newStatus) => {
     try {
@@ -60,6 +67,14 @@ const TechDashboard = () => {
           <h2 className="text-2xl font-bold text-gray-900">Technician Dashboard</h2>
           <p className="text-gray-500 text-sm">Specialization: <span className="font-semibold text-primary-600">{user.specialization}</span></p>
         </div>
+        <button 
+          onClick={handleManualRefresh}
+          disabled={loading}
+          className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+          <span>Refresh</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

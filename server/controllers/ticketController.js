@@ -34,6 +34,10 @@ const createTicket = async (req, res) => {
       if (technicians.length === 0) {
         technicians = await User.find({ role: 'technician', specialization: 'General' });
       }
+      // Absolute fallback: if still no tech found, pick ANY technician
+      if (technicians.length === 0) {
+        technicians = await User.find({ role: 'technician' });
+      }
     }
 
     // Pick least busy technician
