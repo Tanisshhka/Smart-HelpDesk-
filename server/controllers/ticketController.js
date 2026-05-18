@@ -1,6 +1,7 @@
 import Ticket from '../models/Ticket.js';
 import ActivityLog from '../models/ActivityLog.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import { categorizeTicket, generateAiResponse } from '../services/aiService.js';
 
 // Helper to log activity
@@ -62,6 +63,13 @@ const createTicket = async (req, res) => {
     await logActivity(ticket._id, 'Ticket created', req.user._id);
     if (assignedTo) {
       await logActivity(ticket._id, 'Ticket auto-assigned to technician', req.user._id);
+      
+      // Create a notification for the assigned technician
+      await Notification.create({
+        user: assignedTo,
+        ticket: ticket._id,
+        message: `You have been assigned a new ticket: ${ticket.title}`
+      });
     }
 
     res.status(201).json(ticket);
