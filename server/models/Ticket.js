@@ -42,6 +42,16 @@ const ticketSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
+    },
+    feedback: {
+      type: String,
+      default: '',
+    },
     aiConversation: [
       {
         role: { type: String, enum: ['user', 'assistant'], required: true },

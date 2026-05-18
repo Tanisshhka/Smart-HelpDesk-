@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { createTicket, getTickets, getTicketById, updateTicketStatus, chatWithAi } from '../controllers/ticketController.js';
+import { createTicket, getTickets, getTicketById, updateTicketStatus, chatWithAi, submitFeedback } from '../controllers/ticketController.js';
 import { protect, technician } from '../middleware/authMiddleware.js';
 
 router.route('/')
@@ -15,5 +15,8 @@ router.route('/:id/status')
 
 router.route('/:id/chat')
   .post(protect, chatWithAi);
+
+router.route('/:id/feedback')
+  .put(protect, submitFeedback);
 
 export default router;

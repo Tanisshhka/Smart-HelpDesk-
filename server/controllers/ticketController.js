@@ -137,6 +137,7 @@ const updateTicketStatus = async (req, res) => {
   const ticket = await Ticket.findById(req.params.id);
 
   if (ticket) {
+    const previousStatus = ticket.status;
     ticket.status = status || ticket.status;
     if (resolutionNotes) {
       ticket.resolutionNotes = resolutionNotes;
@@ -145,6 +146,15 @@ const updateTicketStatus = async (req, res) => {
     const updatedTicket = await ticket.save();
 
     await logActivity(ticket._id, `Status updated to ${status}`, req.user._id);
+
+    // Send notification to user when ticket is resolved
+    if (status === 'Resolved' && previousStatus !== 'Resolved') {
+      await Notification.create({
+        user: ticket.createdBy,
+        ticket: ticket._id,
+        message: `Your ticket "${ticket.title}" has been resolved! Please give your feedback.`
+      });
+    }
 
     res.json(updatedTicket);
   } else {
@@ -186,4 +196,48 @@ const chatWithAi = async (req, res) => {
   res.json(updatedTicket);
 };
 
-export { createTicket, getTickets, getTicketById, updateTicketStatus, chatWithAi };
+// @desc    Submit feedback for a resolved ticket
+// @route   PUT /api/tickets/:id/feedback
+// @access  Private (User)
+const submitFeedback = async (req, res) => {
+  const { rating, feedback } = req.body;
+
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Only the ticket creator can submit feedback
+    if (ticket.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to submit feedback for this ticket' });
+    }
+
+    // Only resolved/closed tickets can receive feedback
+    if (ticket.status !== 'Resolved' && ticket.status !== 'Closed') {
+      return res.status(400).json({ message: 'Feedback can only be submitted for resolved tickets' });
+    }
+
+    ticket.rating = rating;
+    ticket.feedback = feedback;
+    const updatedTicket = await ticket.save();
+
+    await logActivity(ticket._id, `Feedback submitted (Rating: ${rating}/5)`, req.user._id);
+
+    // Notify the assigned technician about the feedback
+    if (ticket.assignedTo) {
+      await Notification.create({
+        user: ticket.assignedTo,
+        ticket: ticket._id,
+        message: `Feedback received for "${ticket.title}": ${rating}/5 ⭐`
+      });
+    }
+
+    res.json(updatedTicket);
+  } catch (error) {
+    res.status(500).json({ message: 'Error submitting feedback', error: error.message });
+  }
+};
+
+export { createTicket, getTickets, getTicketById, updateTicketStatus, chatWithAi, submitFeedback };
